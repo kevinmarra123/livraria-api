@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Livraria</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="estilos.css">
+  <script>
+    try {
+      const tema = localStorage.getItem("tema")
+      if (tema) document.documentElement.dataset.theme = tema
+    } catch {}
+  </script>
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <header class="topo">
+    <div class="topo__interno">
+      <div class="marca">
+        <span class="marca__logo" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5V5a2 2 0 0 1 2-2h13v16H6.5A2.5 2.5 0 0 0 4 21.5v-2Z"/><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H19"/><path d="M9 7h6"/></svg>
+        </span>
+        <div>
+          <h1>Livraria</h1>
+          <p>Seu acervo, organizado.</p>
+        </div>
+      </div>
+      <div class="topo__lado">
+        <div class="estatistica"><strong id="total-livros">–</strong><span>livros</span></div>
+        <div class="estatistica"><strong id="total-autores">–</strong><span>autores</span></div>
+        <button class="botao-icone" id="alternar-tema" type="button" aria-label="Alternar tema claro/escuro">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18Z" fill="currentColor"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="conteudo">
+    <div class="abas" role="tablist" aria-label="Seções">
+      <button class="aba" role="tab" type="button" id="aba-livros" data-aba="livros" aria-controls="painel-livros" aria-selected="true">Livros</button>
+      <button class="aba" role="tab" type="button" id="aba-autores" data-aba="autores" aria-controls="painel-autores" aria-selected="false">Autores</button>
+    </div>
+
+    <section id="painel-livros" class="painel" role="tabpanel" aria-labelledby="aba-livros">
+      <div class="barra">
+        <label class="campo-busca">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <span class="visualmente-oculto">Buscar livros</span>
+          <input id="busca-livros" type="search" placeholder="Buscar por título, autor ou editora" autocomplete="off">
+        </label>
+        <label class="seletor">
+          <span class="visualmente-oculto">Filtrar por autor</span>
+          <select id="filtro-autor"><option value="">Todos os autores</option></select>
+        </label>
+        <label class="seletor">
+          <span class="visualmente-oculto">Ordenar</span>
+          <select id="ordenacao">
+            <option value="recentes">Mais recentes</option>
+            <option value="titulo">Título (A–Z)</option>
+            <option value="preco-asc">Menor preço</option>
+            <option value="preco-desc">Maior preço</option>
+          </select>
+        </label>
+        <button class="botao botao--primario" type="button" data-acao="novo-livro">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+          Novo livro
+        </button>
+      </div>
+      <p class="resumo" id="resumo-livros" aria-live="polite"></p>
+      <div id="grade-livros" class="grade"></div>
+      <nav id="paginacao" class="paginacao" aria-label="Paginação"></nav>
+    </section>
+
+    <section id="painel-autores" class="painel" role="tabpanel" aria-labelledby="aba-autores" hidden>
+      <div class="barra">
+        <label class="campo-busca">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <span class="visualmente-oculto">Buscar autores</span>
+          <input id="busca-autores" type="search" placeholder="Buscar autor" autocomplete="off">
+        </label>
+        <button class="botao botao--primario" type="button" data-acao="novo-autor">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+          Novo autor
+        </button>
+      </div>
+      <p class="resumo" id="resumo-autores" aria-live="polite"></p>
+      <div id="lista-autores" class="grade grade--autores"></div>
+    </section>
+  </main>
+
+  <dialog id="dialogo-livro" class="dialogo" aria-labelledby="titulo-dialogo-livro">
+    <form id="form-livro">
+      <header class="dialogo__topo">
+        <h2 id="titulo-dialogo-livro">Novo livro</h2>
+        <button type="button" class="botao-icone" data-fechar aria-label="Fechar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
+        </button>
+      </header>
+      <div class="dialogo__corpo">
+        <div class="erro-form" id="erro-form-livro" role="alert" hidden></div>
+        <div class="campo">
+          <label for="livro-titulo">Título <span class="obrigatorio">*</span></label>
+          <input id="livro-titulo" name="titulo" required maxlength="200" autocomplete="off">
+        </div>
+        <div class="campo">
+          <label for="livro-autor">Autor <span class="obrigatorio">*</span></label>
+          <div class="campo__linha">
+            <select id="livro-autor" name="autor" required></select>
+            <button type="button" class="botao botao--secundario" data-acao="atalho-novo-autor">Novo autor</button>
+          </div>
+        </div>
+        <div class="campo">
+          <label for="livro-editora">Editora</label>
+          <input id="livro-editora" name="editora" maxlength="120" autocomplete="off">
+        </div>
+        <div class="campo-duplo">
+          <div class="campo">
+            <label for="livro-preco">Preço (R$)</label>
+            <input id="livro-preco" name="preco" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00">
+          </div>
+          <div class="campo">
+            <label for="livro-paginas">Páginas</label>
+            <input id="livro-paginas" name="paginas" type="number" min="1" max="10000" step="1" inputmode="numeric">
+          </div>
+        </div>
+      </div>
+      <footer class="dialogo__rodape">
+        <button type="button" class="botao botao--fantasma" data-fechar>Cancelar</button>
+        <button type="submit" class="botao botao--primario">Salvar</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <dialog id="dialogo-autor" class="dialogo" aria-labelledby="titulo-dialogo-autor">
+    <form id="form-autor">
+      <header class="dialogo__topo">
+        <h2 id="titulo-dialogo-autor">Novo autor</h2>
+        <button type="button" class="botao-icone" data-fechar aria-label="Fechar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
+        </button>
+      </header>
+      <div class="dialogo__corpo">
+        <div class="erro-form" id="erro-form-autor" role="alert" hidden></div>
+        <div class="campo">
+          <label for="autor-nome">Nome <span class="obrigatorio">*</span></label>
+          <input id="autor-nome" name="nome" required maxlength="120" autocomplete="off">
+        </div>
+        <div class="campo">
+          <label for="autor-nacionalidade">Nacionalidade</label>
+          <input id="autor-nacionalidade" name="nacionalidade" maxlength="80" autocomplete="off">
+        </div>
+      </div>
+      <footer class="dialogo__rodape">
+        <button type="button" class="botao botao--fantasma" data-fechar>Cancelar</button>
+        <button type="submit" class="botao botao--primario">Salvar</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <dialog id="dialogo-confirmacao" class="dialogo dialogo--pequeno" aria-labelledby="confirmacao-titulo">
+    <form method="dialog">
+      <div class="dialogo__corpo">
+        <h2 id="confirmacao-titulo"></h2>
+        <p id="confirmacao-mensagem" class="texto-suave"></p>
+      </div>
+      <footer class="dialogo__rodape">
+        <button class="botao botao--fantasma" value="cancelar">Cancelar</button>
+        <button class="botao botao--perigo" value="confirmar" id="confirmacao-acao">Excluir</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <div id="avisos" class="avisos"></div>
+</body>
+</html>
